@@ -150,5 +150,17 @@ class KategoriController extends Controller
         return response()->json(["status"=>"data berhasil dihapus"]);
     }
 
+    public function showAPIKategoriid($id)
+    {
+        $kategori = Kategori::find($id);
+
+        if (!$kategori) {
+            return response()->json(['message' => 'Kategori not found'], 404);
+        }
+
+        return response()->json($kategori);
+    }
+
+
 
 }
