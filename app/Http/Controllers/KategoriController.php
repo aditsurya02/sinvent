@@ -44,15 +44,34 @@ class KategoriController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'deskripsi' => 'required|string|unique:kategori',
-            'kategori' => 'required|in:M,A,BTP,BTHP',
+            'deskripsi' => 'required|unique:kategori',
+            'kategori'  => 'required|in:M,A,BHP,BTHP',
         ], [
             'deskripsi.unique' => 'Deskripsi sudah ada dalam database.', // Pesan kesalahan kustom untuk deskripsi duplikat
         ]);
-        Kategori::create([
-            'deskripsi' => $request->deskripsi,
-            'kategori' => $request->kategori,
-        ]);
+        try {
+            DB::beginTransaction(); // Start the transaction
+
+            // Insert a new category using Eloquent
+            Kategori::create([
+                'deskripsi' => $request->deskripsi,
+                'kategori'  => $request->kategori,
+                'status'    => 'pending',
+            ]);
+
+            DB::commit(); // Commit the changes
+
+            // Flash success message to the session
+            Session::flash('success', 'Kategori berhasil disimpan!');
+        } catch (\Exception $e) {
+            DB::rollBack(); // Rollback in case of an exception
+            report($e); // Report the exception
+
+            // Flash failure message to the session
+            Session::flash('gagal', 'Kategori gagal disimpan!');
+        }
+
+        // Redirect to the index route with a success message
         
         return redirect()->route('kategori.index')->with('success', 'Kategori berhasil ditambahkan.');
     }
